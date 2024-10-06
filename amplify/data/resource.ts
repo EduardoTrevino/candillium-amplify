@@ -10,10 +10,10 @@ const schema = a.schema({
   Todo: a
     .model({
       content: a.string(),
-      owner: a.string(), // Ensure the owner field is part of your schema
     })
-    .authorization(allow => [allow.owner()]), // Allow only the owner to access the todo item
+    .authorization(allow => [allow.owner()]), 
 });
+
 
 
 export type Schema = ClientSchema<typeof schema>;
@@ -21,7 +21,7 @@ export type Schema = ClientSchema<typeof schema>;
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: "userPool", // Make sure this is set
+    defaultAuthorizationMode: "userPool", 
   },
 });
 

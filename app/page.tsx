@@ -4,7 +4,7 @@ import { Amplify } from 'aws-amplify';
 import outputs from '@/amplify_outputs.json';
 import '@aws-amplify/ui-react/styles.css';
 import { Authenticator } from '@aws-amplify/ui-react';
-import TodoApp from './TodoApp';
+import TodoApp from '@/app/pages/TodoApp';
 
 Amplify.configure(outputs);
 
