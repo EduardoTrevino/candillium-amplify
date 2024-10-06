@@ -8,16 +8,20 @@ specifies that any user authenticated via an API key can "create", "read",
 =========================================================================*/
 const schema = a.schema({
   Todo: a
-    .model({content: a.string(),
-    }).authorization(allow => [allow.owner()]),
+    .model({
+      content: a.string(),
+      owner: a.string(), // Ensure the owner field is part of your schema
+    })
+    .authorization(allow => [allow.owner()]), // Allow only the owner to access the todo item
 });
+
 
 export type Schema = ClientSchema<typeof schema>;
 
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: "userPool",
+    defaultAuthorizationMode: "userPool", // Make sure this is set
   },
 });
 
