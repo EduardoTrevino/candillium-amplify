@@ -17,7 +17,6 @@ interface AuthUserWithLoginId {
 }
 
 interface Candidate {
-  id: string | null;
   name: string | null;
   lastInterview: string | null; // Date is stored as a string (can be AWSDateTime if needed)
   recruiter: string | null; // This will store the recruiter ID (owner)
@@ -180,8 +179,8 @@ export default function Dashboard() {
             ) : (
               filteredCandidates.map((candidate : Candidate) => (
                 <div
-                  key={candidate.id}
-                  className={`p-4 cursor-pointer hover:bg-accent ${selectedCandidate?.id === candidate.id ? 'bg-accent' : ''}`}
+                  key={candidate.recruiter}
+                  className={`p-4 cursor-pointer hover:bg-accent ${selectedCandidate?.recruiter === candidate.recruiter ? 'bg-accent' : ''}`}
                   onClick={() => handleCandidateClick(candidate)}
                 >
                   <h3 className="font-medium">{candidate.name}</h3>
