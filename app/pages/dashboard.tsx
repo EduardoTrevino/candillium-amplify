@@ -10,17 +10,29 @@ import type { Schema } from '@/amplify/data/resource';
 import { useRouter } from 'next/navigation';  // For navigation in Next.js App Router
 import { LogOut, User } from 'lucide-react';  // Lucide icon for user and log out
 
+// Define a type for AuthUser
+interface AuthUserWithLoginId {
+  loginId: string;
+  email: string;
+}
+
+interface Candidate {
+  name: string | null;
+  lastInterview: string | null; // Date is stored as a string (can be AWSDateTime if needed)
+  recruiter: string | null; // This will store the recruiter ID (owner)
+}
+
 // Generate Amplify Data client
 const client = generateClient<Schema>();
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortAscending, setSortAscending] = useState(true);
-  const [selectedCandidate, setSelectedCandidate] = useState(null);
-  const [candidates, setCandidates] = useState([]);
-  const [user, setUser] = useState(null);  // Store logged-in user info
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null); // Define candidate type
+  const [candidates, setCandidates] = useState<Candidate[]>([]); // Define candidates type
+  const [user, setUser] = useState<AuthUserWithLoginId | null>(null);  // Store logged-in user info
   const [loading, setLoading] = useState(true);  // Manage loading state
-  const [error, setError] = useState(null);  // Handle errors
+  const [error, setError] = useState<string | null>(null); // Handle errors
   const [isClient, setIsClient] = useState(false);  // To check if running on the client
   const [menuOpen, setMenuOpen] = useState(false); // Dropdown state for user menu
 
@@ -34,18 +46,26 @@ export default function Dashboard() {
       try {
         // Get the current authenticated user's info
         const currentUser = await getCurrentUser();
-        console.log("Current user:", currentUser); // Log the user object
+        console.log("Current user structure:", currentUser);
 
-        setUser(currentUser); // Set the user info to state
+        // Extract loginId and email from the appropriate places
+        const loginId = currentUser?.signInDetails?.loginId || currentUser?.username;
+        const email = currentUser?.signInDetails?.loginId;  // Assuming the loginId is the user's email
 
-        if (!currentUser) {
-          throw new Error("User not authenticated");
+        if (!loginId || !email) {
+          throw new Error("User not authenticated or loginId missing");
         }
 
+        // Set the user info to state
+        setUser({
+          loginId,
+          email,
+        });
+
         // Fetch the candidates associated with the logged-in user (recruiter)
-        console.log("Fetching candidates for recruiter:", currentUser.email);
+        console.log("Fetching candidates for recruiter:", loginId);
         const { data: candidatesData } = await client.models.Candidate.list({
-          filter: { recruiter: { eq: currentUser.email } },  // Filter by email instead of username
+          filter: { recruiter: { eq: loginId } },  // Filter by loginId
         });
         console.log("Fetched candidates data:", candidatesData);
 
@@ -77,14 +97,14 @@ export default function Dashboard() {
 
   // Filter and sort candidates based on search and sort settings
   const filteredCandidates = candidates
-    .filter(candidate => candidate.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    .filter(candidate => candidate.name?.toLowerCase().includes(searchQuery.toLowerCase()))
     .sort((a, b) => {
-      const dateComparison = new Date(b.lastInterview).getTime() - new Date(a.lastInterview).getTime();
+      const dateComparison = new Date(b.lastInterview || "").getTime() - new Date(a.lastInterview || "").getTime();
       return sortAscending ? -dateComparison : dateComparison;
     });
 
   // Handle when a candidate is clicked
-  const handleCandidateClick = (candidate) => {
+  const handleCandidateClick = (candidate: Candidate) => {
     setSelectedCandidate(candidate);
   };
 
@@ -159,14 +179,14 @@ export default function Dashboard() {
             ) : (
               filteredCandidates.map((candidate) => (
                 <div
-                  key={candidate.id}
-                  className={`p-4 cursor-pointer hover:bg-accent ${selectedCandidate?.id === candidate.id ? 'bg-accent' : ''}`}
+                  key={candidate.recruiter}
+                  className={`p-4 cursor-pointer hover:bg-accent ${selectedCandidate?.recruiter === candidate.recruiter ? 'bg-accent' : ''}`}
                   onClick={() => handleCandidateClick(candidate)}
                 >
                   <h3 className="font-medium">{candidate.name}</h3>
                   <p className="text-sm text-muted-foreground">
                     <CalendarDays className="inline mr-1 h-4 w-4" />
-                    {new Date(candidate.lastInterview).toLocaleDateString()}
+                    {new Date(candidate.lastInterview || "").toLocaleDateString()}
                   </p>
                 </div>
               ))
@@ -186,7 +206,7 @@ export default function Dashboard() {
           {selectedCandidate ? (
             <div>
               <h3 className="text-lg font-semibold mb-2">
-                Last Interview: {new Date(selectedCandidate.lastInterview).toLocaleDateString()}
+                Last Interview: {new Date(selectedCandidate.lastInterview || "").toLocaleDateString()}
               </h3>
               <p className="text-muted-foreground mb-4">Session Information:</p>
               <div className="bg-muted p-4 rounded-lg">
