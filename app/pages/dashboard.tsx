@@ -97,8 +97,8 @@ export default function Dashboard() {
 
   // Filter and sort candidates based on search and sort settings
   const filteredCandidates = candidates
-    .filter(candidate => candidate.name?.toLowerCase().includes(searchQuery.toLowerCase()))
-    .sort((a, b) => {
+    .filter((candidate: Candidate) => candidate.name?.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a: Candidate, b: Candidate) => {
       const dateComparison = new Date(b.lastInterview || "").getTime() - new Date(a.lastInterview || "").getTime();
       return sortAscending ? -dateComparison : dateComparison;
     });
