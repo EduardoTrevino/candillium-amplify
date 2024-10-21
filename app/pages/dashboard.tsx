@@ -177,7 +177,7 @@ export default function Dashboard() {
             {filteredCandidates.length === 0 ? (
               <p className="text-muted-foreground p-4">No candidates found.</p>  // Display message if no candidates
             ) : (
-              filteredCandidates.map((candidate) => (
+              filteredCandidates.map((candidate : Candidate) => (
                 <div
                   key={candidate.recruiter}
                   className={`p-4 cursor-pointer hover:bg-accent ${selectedCandidate?.recruiter === candidate.recruiter ? 'bg-accent' : ''}`}
